@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t shanvel26/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true shanvel26/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t shanvel26/multi-client ./client
+  - docker build -t shanvel26/multi-nginx ./nginx
+  - docker build -t shanvel26/multi-server ./server
+  - docker build -t shanvel26/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push shanvel26/multi-client
+  - docker push shanvel26/multi-nginx
+  - docker push shanvel26/multi-server
+  - docker push shanvel26/multi-worker
